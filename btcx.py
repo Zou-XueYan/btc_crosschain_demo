@@ -24,7 +24,7 @@ NAME = 'BTCX'
 SYMBOL = 'BTCX'
 DECIMALS = 8
 FACTOR = 100000000
-TOTAL_AMOUNT = 100000000
+TOTAL_AMOUNT = 21000000
 BALANCE_PREFIX = bytearray(b'\x01')
 APPROVE_PREFIX = b'\x02'
 SUPPLY_KEY = 'TotalSupply'
@@ -97,7 +97,9 @@ def Main(operation, args):
 
     if operation == 'unlock':
         return unlock(args[0])
-
+    
+    if operation == "test_deserialize":
+        return test_deserialize(args[0])
     raise Exception("method not supported")
 
 
@@ -293,6 +295,9 @@ def _deserializeArgs(buff):
     amount = res[0]
     return [toAddress, amount]
 
+def test_deserialize(buff):
+    Notify([33632])
+    return _deserializeArgs(buff)
 
 def lock(to_chainId, to_contract, fee, from_address, to_address, amount):
     """
@@ -404,7 +409,7 @@ def readUint32(buff, off):
 
 def readUint64(buff, off):
     # return buff[:8]
-    res = _convertBytes32ToNum(buff[off:], 8)
+    res = _convertBytes32ToNum(buff[off:off+8], 8)
     return [res, off+8]
 
 
@@ -523,6 +528,10 @@ def _convertBytes32ToNum(_bs, bytesLen):
 
 def _getFirstNonZeroPosFromR2L(_bs, bytesLen):
     for i in range(bytesLen):
-        if _bs[bytesLen - i - 1:bytesLen - i] != b'\x00':
-            return bytesLen - i
+        byteI = _bs[bytesLen - i - 1:bytesLen - i]
+        if byteI != b'\x00':
+            if byteI >= b'\x80':
+                return bytesLen - i + 1
+            else :
+                return bytesLen - i
     return -1
